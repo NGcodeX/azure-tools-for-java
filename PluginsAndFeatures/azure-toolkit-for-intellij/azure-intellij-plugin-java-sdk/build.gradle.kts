@@ -3,6 +3,8 @@ dependencies {
     implementation(project(":azure-intellij-plugin-lib-java"))
     implementation("com.microsoft.azure:azure-toolkit-common-lib")
     implementation("com.microsoft.azure:azure-toolkit-ide-common-lib")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    testImplementation("org.mockito:mockito-core:3.9.0")
 
     intellijPlatform {
         // Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.
@@ -10,5 +12,9 @@ dependencies {
         bundledPlugin("org.jetbrains.idea.maven")
         bundledPlugin("org.jetbrains.idea.maven.model")
         bundledPlugin("com.intellij.gradle")
+    }
+
+    tasks.named("test", Test::class) {
+        useJUnitPlatform()
     }
 }
