@@ -166,22 +166,27 @@ public final class MavenProjectReportGenerator implements ProjectActivity, DumbA
                     final Optional<DeprecatedDependency> deprecatedDependency = DeprecatedDependencyUtil.lookupReplacement(groupId, artifactId);
                     deprecatedDependency.ifPresent(deprecatedDependencies::add);
 
-                    if (AZURE_GROUP_ID.equals(groupId)) {
+                    final boolean isAzureGroupId = isAzureGroupId(groupId);
+                    if (isAzureGroupId) {
                         azureDependencies.add(dependency.getMavenId().getDisplayString());
                     }
 
-                    if (report.getBomVersion() == null && AZURE_GROUP_ID.equals(groupId) && versionId != null && !versionId.contains("beta")) {
+                    if (report.getBomVersion() == null && isAzureGroupId && versionId != null && !versionId.contains("beta")) {
                         report.addError(new Error("Azure SDK BOM not used",
                                 ErrorCode.BOM_NOT_USED, ErrorLevel.WARNING, List.of(dependency.getMavenId().getDisplayString())));
                     }
 
-                    if (AZURE_GROUP_ID.equals(groupId) && versionId != null && versionId.contains("beta")) {
+                    if (isAzureGroupId && versionId != null && versionId.contains("beta")) {
                         report.addError(new Error("Beta version of the library used",
                                 ErrorCode.BETA_DEPENDENCY_USED, ErrorLevel.WARNING, List.of(dependency.getMavenId().getDisplayString())));
                     }
                 });
         report.addAllAzureDependencies(azureDependencies);
         report.addAllDeprecatedDependencies(deprecatedDependencies);
+    }
+
+    private static boolean isAzureGroupId(String groupId) {
+        return groupId != null && groupId.startsWith(AZURE_GROUP_ID);
     }
 
     private void analyzeCode(MavenProjectsManager mavenProjectsManager, MavenProject mavenProject, MavenProjectReport report) {
@@ -284,7 +289,7 @@ public final class MavenProjectReportGenerator implements ProjectActivity, DumbA
                         final String artifactId = getTextValue(dependencyTag, "artifactId");
                         final String versionId = getTextValue(dependencyTag, "version");
 
-                        if (AZURE_GROUP_ID.equals(groupId) && AZURE_SDK_BOM.equals(artifactId)) {
+                        if (isAzureGroupId(groupId) && AZURE_SDK_BOM.equals(artifactId)) {
                             final String latestArtifactVersion = MavenUtils.getLatestArtifactVersion(groupId, artifactId);
                             if (versionId != null && !versionId.equals(latestArtifactVersion)) {
                                 report.setBomVersion(versionId);
